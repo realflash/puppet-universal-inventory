@@ -48,6 +48,13 @@
       ]
     },
     {
+      "operatingsystem": "LinuxMint",
+      "operatingsystemrelease": [
+        "17",
+        "18"
+      ]
+    },
+    {
       "operatingsystem": "Windows",
       "operatingsystemrelease": [
         "2008 R2",
