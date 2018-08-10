@@ -1,6 +1,6 @@
 {
   "name": "realflash-universal_inventory",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Ian Gibbs",
   "summary": "Collects installed application data across all modern OSs and provides it as a fact, in a structured way for ownward processing",
   "license": "GPL-3.0-or-later",
@@ -55,7 +55,7 @@
       ]
     },
     {
-      "operatingsystem": "Windows",
+      "operatingsystem": "windows",
       "operatingsystemrelease": [
         "2008 R2",
         "2012 R2",
@@ -78,6 +78,13 @@
       "operatingsystem": "Fedora",
       "operatingsystemrelease": [
         "25"
+      ]
+    },
+    {
+      "operatingsystem": "Amazon",
+      "operatingsystemrelease": [
+        "1",
+        "2"
       ]
     }
   ],

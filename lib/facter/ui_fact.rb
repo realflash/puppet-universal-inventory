@@ -24,6 +24,18 @@ module UIDiscover
         pkg_parts = pkg.chomp.split("\t")
         packages << { "name" => pkg_parts[0], "installed_version" => pkg_parts[1] }
       end
+	when 'windows'
+	  command = 'wmic product WHERE (InstallState=5) get Name,Version,Vendor /format:csv'
+      Facter::Util::Resolution.exec(command).each_line do |pkg|
+	    pkg_string = pkg.chomp.chomp						# God knows why, but each line of output from the command ends in \r\r\n
+		next if pkg_string == "Node,Name,Vendor,Version"	# Ignore the header row
+        pkg_parts = pkg_string.split(",")
+		# 0: computer name
+		# 1: MSI name
+		# Everything in between: vendor name complete with stray commas such "My Corp, Inc."
+		# Last: MSI version
+        packages << { "name" => pkg_parts[1], "installed_version" => pkg_parts[pkg_parts.length-1], "vendor" => pkg_parts[2..pkg_parts.length-2].join(',') }
+      end	
     # I don't have any Solaris boxes to test this on but if someone
     # wants to do that I don't mind listing it as a supported platform
     # Needs updating to provide response in structured format
