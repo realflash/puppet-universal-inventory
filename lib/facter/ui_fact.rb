@@ -9,8 +9,9 @@
 module UIDiscover
   def self.package_list
     packages = []
-    case Facter.fact :operatingsystem
+    case Facter.value(:operatingsystem)
     when 'Debian', 'Ubuntu', 'LinuxMint'
+	  puts "2"
       command = 'dpkg-query -W'
       packages = []
       Facter::Util::Resolution.exec(command).each_line do |pkg|
@@ -43,11 +44,9 @@ module UIDiscover
   end
 end
 
-UIDiscover.package_list.each do |key, value|
-  Facter.add(:"pkg_#{key}") do
-    confine :operatingsystem => ['CentOS', 'Fedora', 'Redhat', 'Debian', 'Ubuntu', 'LinuxMint']
-    setcode do
-      value
-    end
+Facter.add(:"inventory") do
+  confine :operatingsystem => ['CentOS', 'Fedora', 'Redhat', 'Debian', 'Ubuntu', 'LinuxMint']
+  setcode do
+    UIDiscover.package_list
   end
 end
