@@ -2,7 +2,7 @@
   "name": "realflash-universal_inventory",
   "version": "0.0.1",
   "author": "Ian Gibbs",
-  "summary": "Collects installed application data across all modern OSs and provides it as a fact, in a structured wasy for ownward processing",
+  "summary": "Collects installed application data across all modern OSs and provides it as a fact, in a structured way for ownward processing",
   "license": "GPL-3.0-or-later",
   "source": "https://github.com/realflash/puppet-universal-inventory",
   "project_page": "https://github.com/realflash/puppet-universal-inventory",
