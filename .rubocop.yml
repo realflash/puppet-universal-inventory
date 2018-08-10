@@ -49,7 +49,8 @@ Style/Lambda:
   EnforcedStyle: literal
 Style/RegexpLiteral:
   Description: Community preference. See https://github.com/voxpupuli/modulesync_config/issues/168
-  EnforcedStyle: percent_r
+  # Screw the community. More obvious to those coming from other languages
+  EnforcedStyle: slashes
 Style/TernaryParentheses:
   Description: Checks for use of parentheses around ternary conditions. Enforce parentheses
     on complex expressions for better readability, but seriously consider breaking
@@ -116,3 +117,11 @@ Style/IfUnlessModifier:
   Enabled: false
 Style/SymbolProc:
   Enabled: false
+# More obvious to those coming from other languages
+Style/ConditionalAssignment:
+  Enabled: false
+# Explicit is not the same as redundant
+Style/RedundantReturn:
+  Enabled: false
+Style/HashSyntax:
+  EnforcedStyle: hash_rockets

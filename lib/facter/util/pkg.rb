@@ -1,4 +1,4 @@
-# Modified code originally written by 
+# Modified code originally written by
 # Cody Herriges <cody@puppetlabs.com>
 #
 # Collects and creates a fact for every package installed on the system and
@@ -26,10 +26,9 @@ module Facter::Util::Pkg
       packages = []
       Facter::Util::Resolution.exec(command).each_line do |line|
         if line =~ /^\w/
-          then
-            combined << line.chomp
-          else
-            combined << line
+          combined << line.chomp
+        else
+          combined << line
         end
       end
       combined.each_line do |pkg|
