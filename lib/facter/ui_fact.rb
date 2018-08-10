@@ -4,10 +4,12 @@
 # Collects and creates a fact for every package installed on the system and
 # returns that package's version as the fact value.  Useful for doing package
 # inventory and making decisions based on installed package versions.
-module Facter::Util::Pkg
+
+
+module UIDiscover
   def self.package_list
     packages = []
-    case Facter.operatingsystem
+    case Facter.fact :operatingsystem
     when 'Debian', 'Ubuntu', 'LinuxMint'
       command = 'dpkg-query -W'
       packages = []
@@ -38,5 +40,14 @@ module Facter::Util::Pkg
       end
     end
     return packages
+  end
+end
+
+UIDiscover.package_list.each do |key, value|
+  Facter.add(:"pkg_#{key}") do
+    confine :operatingsystem => ['CentOS', 'Fedora', 'Redhat', 'Debian', 'Ubuntu', 'LinuxMint']
+    setcode do
+      value
+    end
   end
 end
