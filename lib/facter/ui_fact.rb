@@ -26,7 +26,7 @@ module UIDiscover
       end
     # I don't have any Solaris boxes to test this on but if someone
     # wants to do that I don't mind listing it as a supported platform
-	# Needs updating to provide response in structured format
+    # Needs updating to provide response in structured format
     #~ when 'Solaris'
       #~ command = 'pkginfo -x'
       #~ combined = ''
@@ -41,13 +41,14 @@ module UIDiscover
       #~ combined.each_line do |pkg|
         #~ packages << pkg.chomp.scan(/^(\S+).*\s(\d.*)/)[0]
       #~ end
+    else
+      packages = "Unsupported OS '" + Facter.value(:operatingsystem) + "'. Please report the output of `facter operatingsystem` at https://github.com/realflash/puppet-universal-inventory/issues"
     end
     return packages
   end
 end
 
 Facter.add(:"inventory") do
-  confine :operatingsystem => ['CentOS', 'Fedora', 'Redhat', 'Debian', 'Ubuntu', 'LinuxMint']
   setcode do
     UIDiscover.package_list
   end
