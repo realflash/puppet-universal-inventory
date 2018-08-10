@@ -9,7 +9,7 @@ require 'facter/util/pkg'
 
 Facter::Util::Pkg.package_list.each do |key, value|
   Facter.add(:"pkg_#{key}") do
-    confine :operatingsystem => ['CentOS', 'Fedora', 'Redhat', 'Debian', 'Ubuntu', 'Solaris', 'LinuxMint']
+    confine :operatingsystem => ['CentOS', 'Fedora', 'Redhat', 'Debian', 'Ubuntu', 'LinuxMint']
     setcode do
       value
     end

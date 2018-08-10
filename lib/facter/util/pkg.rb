@@ -20,6 +20,8 @@ module Facter::Util::Pkg
       Facter::Util::Resolution.exec(command).each_line do |pkg|
         packages << pkg.chomp.split("\t")
       end
+    # I don't have any Solaris boxes to test this on but if someone
+    # wants to do that I don't mind listing it as a supported platform
     when 'Solaris'
       command = 'pkginfo -x'
       combined = ''
