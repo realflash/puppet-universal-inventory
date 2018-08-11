@@ -1,12 +1,40 @@
-# Modified code originally written by
+# Ian Gibbs
+#
+# Built from code written by
 # Cody Herriges <cody@puppetlabs.com>
+# jhaals/app_inventory
 #
 # Collects and creates a fact for every package installed on the system and
 # returns that package's version as the fact value.  Useful for doing package
 # inventory and making decisions based on installed package versions.
 
-
 module UIDiscover
+require 'rexml/document'
+require 'json'
+include REXML
+
+  def self.parse(element)
+    case element.name
+    when 'array'
+      element.elements.map {|child| parse(child)}
+    when 'dict'
+      result = {}
+      element.elements.each_slice(2) do |key, value|
+        result[key.text] = parse(value)
+      end
+      result
+    when 'real'
+      element.text.to_f
+    when 'integer'
+      element.text.to_i
+    when 'string', 'date'
+      element.text
+    else
+      # FIXME: Remove me or beef me up
+      # puts "Unknown type " + element.name
+    end
+  end
+
   def self.package_list
     packages = []
     case Facter.value(:operatingsystem)
@@ -35,11 +63,26 @@ module UIDiscover
 		# Everything in between: vendor name complete with stray commas such "My Corp, Inc."
 		# Last: MSI version
         packages << { "name" => pkg_parts[1], "installed_version" => pkg_parts[pkg_parts.length-1], "vendor" => pkg_parts[2..pkg_parts.length-2].join(',') }
-      end	
+      end
+  when 'Darwin'
+    command = 'system_profiler SPApplicationsDataType -xml'
+    xml = Facter::Util::Resolution.exec(command)
+    xmldoc = Document.new(xml)
+    result = parse(xmldoc.root[1])
+
+    packages = []
+    result[0]['_items'].each do |application|
+      # Only list applications in /Applications, Skip /Application/Utilities
+      if application['path'].match(/^\/Applications/) and application['path'].index('Utilities') == nil
+        if !application['version'].nil?
+          packages << { "name" => application['_name'], "installed_version" => application['version'] }
+        end
+      end
+    end
     # I don't have any Solaris boxes to test this on but if someone
     # wants to do that I don't mind listing it as a supported platform
     # Needs updating to provide response in structured format
-    #~ when 'Solaris'
+  #~ when 'Solaris'
       #~ command = 'pkginfo -x'
       #~ combined = ''
       #~ packages = []
@@ -62,6 +105,6 @@ end
 
 Facter.add(:"inventory") do
   setcode do
-    UIDiscover.package_list
+    JSON.generate(UIDiscover.package_list)
   end
 end
