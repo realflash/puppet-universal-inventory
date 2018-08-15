@@ -1,0 +1,21 @@
+---
+os_mapping:
+  osx:
+    config_file: notify_osx
+    mapping_strings:
+      - Darwin
+  windows:
+    config_file: notify_windows
+    mapping_strings:
+      - windows
+  linux:
+    config_file: notify_linux
+    mapping_strings:
+      - RedHat
+      - Ubuntu
+      - Amazon
+      - LinuxMint
+# If you have a self-signed cert on the API endpoint specify the CA cert
+# that signed it here. Should be in same dir as the script
+ca_cert: mom.puppet.virtuclarity.com.ca.pem
+

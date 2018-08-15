@@ -1,0 +1,20 @@
+---
+# To match on name only, only specify the value reported as 'name' in the 'inventory' fact
+# with a colon after it like this
+# Example App:
+# To match on name and version, also specify 'installed_version'
+# Example App:
+#   installed_version:2
+# If more than one version is OK, specify multiple entries
+# Example App:
+#   installed_version:2
+# Example App:
+#   installed_version:3
+# If all apps from a certain vendor are OK, use * for the package name
+# *:
+#    vendor: Microsoft Corporation
+  Office 16 Click-to-Run Extensibility Component:
+  Office 16 Click-to-Run Localization Component:
+  Office 16 Click-to-Run Licensing Component:
+  Citrix Receiver(Aero):
+  

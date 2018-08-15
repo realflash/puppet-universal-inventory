@@ -1,0 +1,14 @@
+log4perl.rootLogger=TRACE, STDOUT
+
+log4perl.appender.STDOUT=Log::Log4perl::Appender::ScreenColoredLevels
+log4perl.appender.STDOUT.stderr=0
+log4perl.appender.STDOUT.layout=Log::Log4perl::Layout::PatternLayout
+log4perl.appender.STDOUT.layout.ConversionPattern=%d [%c] %p - %m%n
+log4perl.appender.STDOUT.Threshold=TRACE
+log4perl.appender.STDOUT.utf8=1
+log4perl.appender.STDOUT.color.TRACE=
+log4perl.appender.STDOUT.color.DEBUG=
+log4perl.appender.STDOUT.color.INFO=bold white
+log4perl.appender.STDOUT.color.WARN=bold magenta
+log4perl.appender.STDOUT.color.ERROR=bold yellow
+log4perl.appender.STDOUT.color.FATAL=bold red
