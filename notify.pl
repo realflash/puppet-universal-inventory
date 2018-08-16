@@ -169,6 +169,7 @@ foreach my $group (@$groups)
 			}
 		}
 		
+		$log->debug("Violations: ".scalar(keys %$violations));
 		if(scalar(keys %$violations) > 0)
 		{
 			# We now have a list of violations for this host.
