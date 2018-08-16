@@ -15,8 +15,32 @@
 #    vendor:
 #      - Microsoft Corporation
 #      - Google Inc.
-  Citrix Receiver(Aero):
   ANY:
     vendor:
       - Microsoft Corporation
-  
+      - Intel Corporation
+      - Broadcom Limited
+      - Puppet Inc
+      - Realtek Semiconductor Corp.
+      - 'Dropbox, Inc.'
+      - 'Citrix Systems, Inc.'
+      - Cisco WebEx LLC
+      - Netgear
+      - Adobe Systems Incorporated
+      - Belkin
+      - Asmedia Technology
+      - Dell Inc.
+      - 'Dell Products, LP'
+      - Qualcomm
+      - Rivet Networks
+      - Qualcomm Atheros
+      - Synaptics Incorporated
+  Google Chrome:
+  Google Update Helper:
+  Maxx Audio Installer (x64):
+  LSDCDriverIntall:
+  Visual Studio C++ 10.0 Runtime:
+  # Dell built in PC Doctor thing
+  DSC/AA Factory Installer:
+  # Barco ClickShare presentation software
+  ClickShare Extension Pack:

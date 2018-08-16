@@ -46,14 +46,17 @@ foreach my $os (keys %{$cfg->{'os_mapping'}})
 my $pkg_cfg = Config::Any->load_stems({stems => $files, flatten_to_hash => 1, use_ext => 1});
 
 my $limit_node;
+my $limit_os;
 my $package_list;
 # Process options
-unless(GetOptions('n|node=s' => \$limit_node, 'p|package-list' => \$package_list))
+unless(GetOptions('n|node=s' => \$limit_node, 'p|package-list' => \$package_list, 'o|os=s' => \$limit_os))
 {
 	$log->fatal("Bad options");
 	&printHelp;
 	exit 1;
 }
+$log->info("Limiting to node $limit_node") if $limit_node;
+$log->info("Limiting to OS $limit_os") if $limit_node;
 
 my $ua = LWP::UserAgent->new;
 # Do we need to accept a self-signed cert?
@@ -70,6 +73,7 @@ my $os_map = &loadOSList;
 #~ my $num_groups = $groups->{'total'};
 my ($groups, $num_groups) = getAndDecode("hostgroups");
 my $i = 1;
+my $delayed_messages = [];
 foreach my $group (@$groups)
 {
 	my ($hosts, $num_hosts) = getAndDecode("hostgroups/".$group->{'id'}."/hosts");
@@ -111,6 +115,11 @@ foreach my $group (@$groups)
 			}
 		}
 		$log->debug("Applying package list '$os_to_apply'");
+		# If we are supposed to only be working on one OS skip all the others
+		if($limit_os)
+		{
+			next unless $os_to_apply eq $limit_os;
+		}
 		
 		# This is a JSON string that needs further decoding
 		my $inventory = $json->decode($facts->{'inventory'});
@@ -160,20 +169,40 @@ foreach my $group (@$groups)
 			}
 		}
 		
-		# We now have a list of violations for this host.
-		my $yaml = Dump([$violations]);
-		if($package_list)
-		{	# Instead of alerting, print a list of the violations in the package list format so that it 
-			my $output_file = "/tmp/$host->{'name'}.yml";
-			open(FH, '>', $output_file) || die "Couldn't open file $output_file";
-			print FH $yaml;
-			close(FH);
-			$log->info("Violations written to $output_file")
+		if(scalar(keys %$violations) > 0)
+		{
+			# We now have a list of violations for this host.
+			# Get rid of version numbers so that the rules are simpler and match better
+			foreach my $package (keys %$violations)
+			{
+				delete($violations->{$package}->{'installed_version'});
+				delete($violations->{$package}->{'name'});
+				$violations->{$package} = undef if(scalar(keys(%{$violations->{$package}})) < 1);
+			}
+			my $yaml = Dump([$violations]);
+			# Slight tweaks to output styles
+			$yaml =~ s/: ~/:/g;
+			$yaml =~ s/^- /  /gm;
+			if($package_list)
+			{	# Instead of alerting, print a list of the violations in the package list format so that it 
+				my $output_file = "/tmp/$host->{'name'}.yml";
+				open(FH, '>', $output_file) || die "Couldn't open file $output_file";
+				print FH $yaml;
+				close(FH);
+				push(@$delayed_messages, "Violations written to $output_file");
+			}
 		}
-		$j++;
+		$j++;			# increment node counter
 	}
-	$i++;
+	$i++;				# increment group counter
 }
+
+# Print out any delayed messages
+foreach my $msg (@$delayed_messages)
+{
+	$log->info($msg);
+}
+$log->info("Done");
 
 sub checkPackageVersion
 {
@@ -330,7 +359,12 @@ sub output_response
 sub printHelp
 {
 	print STDERR "
-./notify.pl [--node <node_name>]
-	--node	Limit to working on just this node. By default processes every node.
+./notify.pl [--node <node_name>] [--package-list]
+	--node,-n			Limit to working on just this node. By default
+						this tool processes every node.
+	
+	--package-list,-p	Write a YAML file containing the violations that
+						you could add to the existing package list so that
+						they are no longer violations
 ";
 }
