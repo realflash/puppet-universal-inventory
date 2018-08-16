@@ -144,26 +144,45 @@ foreach my $group (@$groups)
 					$violations->{$pkg->{'name'}} = $pkg;	# Potentially violating package
 				}
 			}
-			else
+			elsif(exists($pkg_cfg->{$pkg_list_path}->{'ANY'}) && $pkg->{'vendor'})
 			{	# No rule had a matching name. Is there are a wildcard rule?
-				if(exists($pkg_cfg->{$pkg_list_path}->{'ANY'}) && $pkg->{'vendor'})
+				my $wildcard = $pkg_cfg->{$pkg_list_path}->{'ANY'};
+				my $vendor_match = 0;
+				foreach my $vendor (@{$wildcard->{'vendor'}})
 				{
-					my $wildcard = $pkg_cfg->{$pkg_list_path}->{'ANY'};
-					my $vendor_match = 0;
-					foreach my $vendor (@{$wildcard->{'vendor'}})
+					if($vendor eq $pkg->{'vendor'})
 					{
-						if($vendor eq $pkg->{'vendor'})
-						{
-							$vendor_match = 1;
-						}
-					}
-					if($vendor_match)
-					{
-						$log->trace("NAME NOT FOUND MATCHED VENDOR WILDCARD");
-						delete($violations->{$pkg->{'name'}}); 	# Not a violation after all
-						next;
+						$vendor_match = 1;
 					}
 				}
+				if($vendor_match)
+				{
+					$log->trace("NAME NOT FOUND MATCHED VENDOR WILDCARD");
+					delete($violations->{$pkg->{'name'}}); 	# Not a violation after all
+					next;
+				}
+			}
+			else
+			{
+				my $regex_match;
+				foreach my $name_rule (keys %{$pkg_cfg->{$pkg_list_path}})
+				{
+					$log->trace("Trying rule $name_rule");
+					if($pkg->{'name'} =~ m/$name_rule/)
+					{
+						$log->trace("Matched");
+						$regex_match = 1;
+						#~ last;
+					}
+				}
+
+				if($regex_match)
+				{
+					$log->trace("NAME MATCHED VIA REGEX");
+					delete($violations->{$pkg->{'name'}}); 	# Not a violation after all
+					next;
+				}
+				
 				$log->trace("NAME NOT FOUND");
 				$violations->{$pkg->{'name'}} = $pkg;	# Potentially violating package
 			}

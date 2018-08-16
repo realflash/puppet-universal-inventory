@@ -1,4 +1,6 @@
 ---
+  linux-headers-[\w\d\.]+:
+  linux-image-[\w\d\.]+:
   accountsservice:
   ack-grep:
   acl:
@@ -2781,24 +2783,6 @@
   lintian:
   linux-base:
   linux-firmware:
-  linux-headers-3.19.0-32:
-  linux-headers-4.10.0-35:
-  linux-headers-4.13.0-26:
-  linux-headers-4.13.0-26-generic:
-  linux-headers-4.13.0-36:
-  linux-headers-4.13.0-36-generic:
-  linux-headers-4.13.0-38:
-  linux-headers-4.13.0-38-generic:
-  linux-headers-4.4.0-96:
-  linux-headers-4.8.0-53:
-  linux-image-4.13.0-26-generic:
-  linux-image-4.13.0-36-generic:
-  linux-image-4.13.0-38-generic:
-  linux-image-4.4.0-21-generic:
-  linux-image-extra-4.13.0-26-generic:
-  linux-image-extra-4.13.0-36-generic:
-  linux-image-extra-4.13.0-38-generic:
-  linux-image-extra-4.4.0-21-generic:
   linux-libc-dev:amd64:
   linux-sound-base:
   linuxmint-keyring:
@@ -4442,3 +4426,74 @@
   yum-plugin-priorities:
   yum-utils:
   zlib:
+  NetworkManager:
+  NetworkManager-config-server:
+  NetworkManager-libnm:
+  NetworkManager-team:
+  NetworkManager-tui:
+  Red_Hat_Enterprise_Linux-Release_Notes-7-en-US:
+  audit-libs-python:
+  btrfs-progs:
+  checkpolicy:
+  dbus-glib:
+  dbus-python:
+  dracut-config-rescue:
+  dracut-network:
+  emacs-filesystem:
+  gobject-introspection:
+  iwl7265-firmware:
+  kernel-tools-libs:
+  kexec-tools:
+  libcgroup:
+  libgudev1:
+  libndp:
+  libnl:
+  libselinux-python:
+  libsemanage-python:
+  libxslt:
+  lzo:
+  m2crypto:
+  microcode_ctl:
+  mozjs17:
+  policycoreutils-python:
+  polkit:
+  polkit-pkla-compat:
+  pyOpenSSL:
+  pygobject2:
+  pyserial:
+  python-IPy:
+  python-dateutil:
+  python-decorator:
+  python-dmidecode:
+  python-ethtool:
+  python-gobject-base:
+  python-gudev:
+  python-hwdata:
+  python-inotify:
+  python-linux-procfs:
+  python-magic:
+  python-perf:
+  python-prettytable:
+  python-pyudev:
+  python-schedutils:
+  qemu-guest-agent:
+  redhat-release-server:
+  redhat-support-lib-python:
+  redhat-support-tool:
+  rh-amazon-rhui-client:
+  rhn-check:
+  rhn-client-tools:
+  rhn-setup:
+  rhnlib:
+  rhnsd:
+  setools-libs:
+  sg3_utils:
+  sg3_utils-libs:
+  snappy:
+  subscription-manager:
+  subscription-manager-rhsm:
+  subscription-manager-rhsm-certificates:
+  tuned:
+  wpa_supplicant:
+  yum-rhn-plugin:
+  
