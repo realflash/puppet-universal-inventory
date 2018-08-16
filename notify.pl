@@ -70,6 +70,7 @@ my $os_map = &loadOSList;
 #~ my $num_groups = $groups->{'total'};
 my ($groups, $num_groups) = getAndDecode("hostgroups");
 my $i = 1;
+my $delayed_messages = [];
 foreach my $group (@$groups)
 {
 	my ($hosts, $num_hosts) = getAndDecode("hostgroups/".$group->{'id'}."/hosts");
@@ -168,12 +169,19 @@ foreach my $group (@$groups)
 			open(FH, '>', $output_file) || die "Couldn't open file $output_file";
 			print FH $yaml;
 			close(FH);
-			$log->info("Violations written to $output_file")
+			push(@$delayed_messages, "Violations written to $output_file");
 		}
 		$j++;
 	}
 	$i++;
 }
+
+# Print out any delayed messages
+foreach my $msg (@$delayed_messages)
+{
+	$log->info($msg);
+}
+$log->info("Done");
 
 sub checkPackageVersion
 {
@@ -330,7 +338,12 @@ sub output_response
 sub printHelp
 {
 	print STDERR "
-./notify.pl [--node <node_name>]
-	--node	Limit to working on just this node. By default processes every node.
+./notify.pl [--node <node_name>] [--package-list]
+	--node,-n			Limit to working on just this node. By default
+						this tool processes every node.
+	
+	--package-list,-p	Write a YAML file containing the violations that
+						you could add to the existing package list so that
+						they are no longer violations
 ";
 }
