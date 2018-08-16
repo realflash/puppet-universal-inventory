@@ -1,6 +1,6 @@
 ---
-  linux-headers-[\w\d\.]+:
-  linux-image-[\w\d\.]+:
+  REGEX~linux-headers-[\w\d\.]+:
+  REGEX~linux-image-[\w\d\.]+:
   accountsservice:
   ack-grep:
   acl:

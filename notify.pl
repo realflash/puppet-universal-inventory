@@ -167,12 +167,13 @@ foreach my $group (@$groups)
 				my $regex_match;
 				foreach my $name_rule (keys %{$pkg_cfg->{$pkg_list_path}})
 				{
+					next unless $name_rule =~ s/^REGEX~//;
 					$log->trace("Trying rule $name_rule");
 					if($pkg->{'name'} =~ m/$name_rule/)
 					{
 						$log->trace("Matched");
 						$regex_match = 1;
-						#~ last;
+						last;
 					}
 				}
 
