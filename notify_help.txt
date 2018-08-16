@@ -1,0 +1,69 @@
+Writing a package list
+======================
+
+Package lists are written in YAML. You can group OSes into package lists 
+in any way you like. See notify_config.yml for an example.
+
+Each package list is a series of rules indexed by package names, that 
+you want to white list (not be notified about when they are installed
+ on a machine). Each file starts with three dashes and then a list of 
+ packages, like this:
+
+---
+  accountsservice:
+  ack-grep:
+  acl:
+  
+This will allow any version of a package called that to be ignored.
+You can use a regex for the package name if you wish, by prepending it 
+with REGEX~:
+
+---
+  accountsservice:
+  ack-grep:
+  acl:
+  REGEX~linux-headers-[\w\d\.]+:
+
+To specify that only a certain version of the package is OK, do this:
+
+---
+  accountsservice:
+  ack-grep:
+    installed_version: 6.7
+  acl:
+
+Or if multiple versions are OK:
+
+---
+  accountsservice:
+  ack-grep:
+    installed_version: 
+      - 6.7
+      - 6.8
+  acl:
+
+If a certain version is not OK, use an exclamation mark to ban it. 
+Banned versions take precendence over allowed, so the moment a rule 
+matches that bans the version processing moves on to the next package,
+ even if the same version is listed as OK in the same list.
+
+---
+  accountsservice:
+  ack-grep:
+    installed_version: 
+      - 6.7
+      - 6.8
+      - !6.9
+  acl:
+
+On Windows you can also specify that all the packages from a certain 
+vendor are OK with the special package name ANY:
+
+  ANY:
+    vendor:
+      - Microsoft Corporation
+      - Intel Corporation
+      - Broadcom Limited
+
+Vendor information is not available on other OSs so you can create rules
+ but they won't match.
