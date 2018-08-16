@@ -12,9 +12,11 @@
 #   installed_version:3
 # If all apps from a certain vendor are OK, use * for the package name
 # *:
-#    vendor: Microsoft Corporation
-  Office 16 Click-to-Run Extensibility Component:
-  Office 16 Click-to-Run Localization Component:
-  Office 16 Click-to-Run Licensing Component:
+#    vendor:
+#      - Microsoft Corporation
+#      - Google Inc.
   Citrix Receiver(Aero):
+  ANY:
+    vendor:
+      - Microsoft Corporation
   

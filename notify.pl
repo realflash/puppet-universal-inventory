@@ -9,6 +9,7 @@ use Error qw(:try);
 use JSON;
 use Config::Any;
 use File::Basename;
+use Getopt::Long;
 
 my $api = "https://mom.puppet.virtualclarity.com/api/";
 my $password = $ENV{'FOREMAN_API_PASSWORD'};
@@ -18,6 +19,8 @@ my $username = $ENV{'FOREMAN_API_USERNAME'};
 my $home = dirname(Cwd::abs_path($0));
 Log::Log4perl->init("$home/notify.log4j");
 my $log = Log::Log4perl->get_logger('puppet.notifier');
+
+$log->trace(Data::Dumper->Dump([$username]));
 
 # Check creds
 $log->logdie("No API username specified. Set environment variable \$FOREMAN_API_USERNAME") unless $username;
@@ -42,6 +45,15 @@ foreach my $os (keys $cfg->{'os_mapping'})
 	push(@$files, "$home/".$cfg->{'os_mapping'}->{$os}->{'config_file'});
 }
 my $pkg_cfg = Config::Any->load_stems({stems => $files, flatten_to_hash => 1, use_ext => 1});
+
+my $limit_node;
+# Process options
+unless(GetOptions('n|node=s' => \$limit_node))
+{
+	$log->fatal("Bad options");
+	&printHelp;
+	exit 1;
+}
 
 my $ua = LWP::UserAgent->new;
 # Do we need to accept a self-signed cert?
@@ -69,7 +81,12 @@ foreach my $group (@$groups)
 	$log->info("[$i/$num_groups] Processing group ".$group->{'id'}." - ".$group->{'name'}.", $num_hosts hosts");
 	my $j = 1;
 	foreach my $host (@$hosts)
-	{
+	{	# If we are supposed to only be working on one node skip all the others
+		if($limit_node)
+		{
+			next unless $host->{'name'} eq $limit_node;
+		}
+
 		my ($facts, $num_facts) = getAndDecode("hosts/".$host->{'id'}."/facts");
 		$facts = $facts->{$host->{'name'}};		# actual facts are one level down
 		if(! defined($facts->{'inventory'}))
@@ -119,17 +136,33 @@ foreach my $group (@$groups)
 				}
 			}
 			else
-			{	# No rule had a matching name
+			{	# No rule had a matching name. Is there are a wildcard rule?
+				if(exists($pkg_cfg->{$pkg_list_path}->{'ANY'}) && $pkg->{'vendor'})
+				{
+					my $wildcard = $pkg_cfg->{$pkg_list_path}->{'ANY'};
+					my $vendor_match = 0;
+					foreach my $vendor (@{$wildcard->{'vendor'}})
+					{
+						if($vendor eq $pkg->{'vendor'})
+						{
+							$vendor_match = 1;
+						}
+					}
+					if($vendor_match)
+					{
+						$log->trace("NAME NOT FOUND MATCHED VENDOR WILDCARD");
+						delete($violations->{$pkg->{'name'}}); 	# Not a violation after all
+						next;
+					}
+				}
 				$log->trace("NAME NOT FOUND");
 				$violations->{$pkg->{'name'}} = $pkg;	# Potentially violating package
 			}
 		}
 		
 		$j++;
-		last;
 	}
 	$i++;
-	last;
 }
 
 sub checkPackageVersion
@@ -284,3 +317,10 @@ sub output_response
 	}
 }
 
+sub printHelp
+{
+	print STDERR "
+./notify.pl [--node <node_name>]
+	--node	Limit to working on just this node. By default processes every node.
+";
+}
