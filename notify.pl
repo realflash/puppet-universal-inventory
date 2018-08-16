@@ -10,6 +10,7 @@ use JSON;
 use Config::Any;
 use File::Basename;
 use Getopt::Long;
+use YAML;
 
 my $api = "https://mom.puppet.virtualclarity.com/api/";
 my $password = $ENV{'FOREMAN_API_PASSWORD'};
@@ -19,8 +20,6 @@ my $username = $ENV{'FOREMAN_API_USERNAME'};
 my $home = dirname(Cwd::abs_path($0));
 Log::Log4perl->init("$home/notify.log4j");
 my $log = Log::Log4perl->get_logger('puppet.notifier');
-
-$log->trace(Data::Dumper->Dump([$username]));
 
 # Check creds
 $log->logdie("No API username specified. Set environment variable \$FOREMAN_API_USERNAME") unless $username;
@@ -36,7 +35,7 @@ our $cfg = $all_cfg->{$found_files[0]};
 
 # Now look in the OS mapping for which OSs we should recognise and operate on
 my $files = [];
-foreach my $os (keys $cfg->{'os_mapping'})
+foreach my $os (keys %{$cfg->{'os_mapping'}})
 {
 	my $file = "$home/".$cfg->{'os_mapping'}->{$os}->{'config_file'}.".yml";
 	$cfg->{'os_mapping'}->{$os}->{'config_file_full_path'} = $file;				# save for later
@@ -47,8 +46,9 @@ foreach my $os (keys $cfg->{'os_mapping'})
 my $pkg_cfg = Config::Any->load_stems({stems => $files, flatten_to_hash => 1, use_ext => 1});
 
 my $limit_node;
+my $package_list;
 # Process options
-unless(GetOptions('n|node=s' => \$limit_node))
+unless(GetOptions('n|node=s' => \$limit_node, 'p|package-list' => \$package_list))
 {
 	$log->fatal("Bad options");
 	&printHelp;
@@ -99,7 +99,7 @@ foreach my $group (@$groups)
 				
 		# Decide which package list to compare to
 		my $os_to_apply;
-		foreach my $os (keys $cfg->{'os_mapping'})
+		foreach my $os (keys %{$cfg->{'os_mapping'}})
 		{
 			foreach my $mapping_string (@{$cfg->{'os_mapping'}->{$os}->{'mapping_strings'}})
 			{
@@ -160,6 +160,16 @@ foreach my $group (@$groups)
 			}
 		}
 		
+		# We now have a list of violations for this host.
+		my $yaml = Dump([$violations]);
+		if($package_list)
+		{	# Instead of alerting, print a list of the violations in the package list format so that it 
+			my $output_file = "/tmp/$host->{'name'}.yml";
+			open(FH, '>', $output_file) || die "Couldn't open file $output_file";
+			print FH $yaml;
+			close(FH);
+			$log->info("Violations written to $output_file")
+		}
 		$j++;
 	}
 	$i++;
@@ -304,7 +314,7 @@ sub output_response
 	if($options->{'store'})
 	{
 		$log->trace("Storing response in $response_store_file");
-		store $response, $response_store_file;
+		store($response, $response_store_file);
 	}
 	
 	if($options->{'dump_response'})
