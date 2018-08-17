@@ -193,24 +193,54 @@ foreach my $group (@$groups)
 		if(scalar(keys %$violations) > 0)
 		{
 			# We now have a list of violations for this host.
-			# Get rid of version numbers so that the rules are simpler and match better
-			foreach my $package (keys %$violations)
-			{
-				delete($violations->{$package}->{'installed_version'});
-				delete($violations->{$package}->{'name'});
-				$violations->{$package} = undef if(scalar(keys(%{$violations->{$package}})) < 1);
-			}
-			my $yaml = Dump([$violations]);
-			# Slight tweaks to output styles
-			$yaml =~ s/: ~/:/g;
-			$yaml =~ s/^- /  /gm;
 			if($package_list)
 			{	# Instead of alerting, print a list of the violations in the package list format so that it 
+				# Get rid of version numbers so that the rules are simpler and match better
+				foreach my $package (keys %$violations)
+				{
+					delete($violations->{$package}->{'installed_version'});
+					delete($violations->{$package}->{'name'});
+					$violations->{$package} = undef if(scalar(keys(%{$violations->{$package}})) < 1);
+				}
+				my $yaml = Dump([$violations]);
+				# Slight tweaks to output styles
+				$yaml =~ s/: ~/:/g;
+				$yaml =~ s/^- /  /gm;
 				my $output_file = "/tmp/$host->{'name'}.yml";
 				open(FH, '>', $output_file) || die "Couldn't open file $output_file";
 				print FH $yaml;
 				close(FH);
 				push(@$delayed_messages, "Violations written to $output_file");
+			}
+			else
+			{
+				my $body = "New unapproved software has been detected:
+											
+";
+				foreach my $package (keys %$violations)
+				{
+					$body .= "Name: $violations->{$package}->{'name'}
+Version: $violations->{$package}->{'installed_version'}
+";
+					$body .= "Vendor: $violations->{$package}->{'vendor'}
+" if $violations->{$package}->{'vendor'};
+					$body .= "
+";
+				}
+				$log->trace($body);
+				my $ticket = { 'ticket' =>
+						{
+							'subject' => "Unapproved software installed on $host->{'name'}",
+							'type' => "incident",
+							'priority' => "normal",
+							'tags' => [ "security" ],
+							'comment' => {
+											'body' => $body
+										}
+						}
+				};
+
+				#~ callURL("post", "https://virtualclarity.zendesk.com/api/v2/tickets.json", undef, $content);
 			}
 		}
 		$j++;			# increment node counter

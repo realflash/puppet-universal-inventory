@@ -1,6 +1,9 @@
 ---
   REGEX~linux-headers-[\w\d\.]+:
   REGEX~linux-image-[\w\d\.]+:
+  REGEX~perl-[\w\d\.]+:
+  REGEX~ruby-[\w\d\.]+:
+  REGEX~python-[\w\d\.]+:
   accountsservice:
   ack-grep:
   acl:
@@ -66,7 +69,6 @@
   binutils:
   binutils-avr:
   bison:
-  blabel:
   blt:
   blueman:
   bluetooth:
@@ -3052,7 +3054,6 @@
   openssh-server:
   openssh-sftp-server:
   openssl:
-  openttd:
   openttd-data:
   openttd-opengfx:
   openttd-openmsx:
