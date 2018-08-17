@@ -74,12 +74,12 @@ $log->debug("Loading alerts log file $cfg->{'alert_log'}");
 my $alerts = LoadFile($cfg->{'alert_log'});
 $log->trace(Data::Dumper->Dump([$alerts]));
 
-my ($groups, $num_groups) = getAndDecode("hostgroups");
+my ($groups, $num_groups) = foremanAPI("hostgroups");
 my $i = 1;
 my $delayed_messages = [];
 foreach my $group (@$groups)
 {
-	my ($hosts, $num_hosts) = getAndDecode("hostgroups/".$group->{'id'}."/hosts");
+	my ($hosts, $num_hosts) = foremanAPI("hostgroups/".$group->{'id'}."/hosts");
 	if($num_hosts < 1)
 	{
 		$log->info("[$i/$num_groups] Skipping group ".$group->{'id'}." - ".$group->{'name'}.", $num_hosts hosts");
@@ -94,7 +94,7 @@ foreach my $group (@$groups)
 			next unless $host->{'name'} eq $limit_node;
 		}
 
-		my ($facts, $num_facts) = getAndDecode("hosts/".$host->{'id'}."/facts");
+		my ($facts, $num_facts) = foremanAPI("hosts/".$host->{'id'}."/facts");
 		$facts = $facts->{$host->{'name'}};		# actual facts are one level down
 		if(! defined($facts->{'inventory'}))
 		{
@@ -261,7 +261,7 @@ foreach my $group (@$groups)
 						}
 				};
 
-				#~ callURL("post", "https://virtualclarity.zendesk.com/api/v2/tickets.json", undef, $content);
+				callURL("post", "https://virtualclarity.zendesk.com/api/v2/tickets.json", undef, $ticket);
 
 				# Update alerts file with successfully sent alerts
 				$log->debug("Updating alerts log file $cfg->{'alert_log'}");
@@ -326,7 +326,7 @@ sub checkPackageVersion
 
 sub loadOSList
 {
-	my ($oss, $num_os) = getAndDecode("operatingsystems");
+	my ($oss, $num_os) = foremanAPI("operatingsystems");
 	my $os_id_map = {};
 	foreach my $os (@$oss)
 	{
@@ -338,13 +338,15 @@ sub loadOSList
 	return $os_id_map;
 }
 
-sub getAndDecode
+sub foremanAPI
 {
 	my $endpoint = shift;
-	
-	my $response = callURL("get", $cfg->{'foreman_api'}."$endpoint?per_page=9999")->decoded_content();
+
+	my $options = { 'username' => $username, 'password' => $password };
+	my $response = callURL("get", $cfg->{'foreman_api'}."$endpoint?per_page=9999", $options)->decoded_content();
 	my $items = $json->decode($response);
 	my $num_items = $items->{'total'};
+
 	return ($items->{'results'}, $num_items);
 }
 
@@ -379,7 +381,7 @@ sub callURL
 	}
 	try
 	{
-		$request->authorization_basic($username, $password);
+		$request->authorization_basic($options->{'username'}, $options->{'password'}) if $options->{'username'};
 		$response = $ua->request($request);
 	}
 	catch Error with
