@@ -10,7 +10,9 @@ use JSON;
 use Config::Any;
 use File::Basename;
 use Getopt::Long;
-use YAML;
+use YAML qw(DumpFile LoadFile Dump Load);
+use Date::Manip 6.53;
+use File::Slurp;
 
 my $foreman_api = "https://mom.puppet.virtualclarity.com/api/";
 my $password = $ENV{'FOREMAN_API_PASSWORD'};
@@ -56,7 +58,7 @@ unless(GetOptions('n|node=s' => \$limit_node, 'p|package-list' => \$package_list
 	exit 1;
 }
 $log->info("Limiting to node $limit_node") if $limit_node;
-$log->info("Limiting to OS $limit_os") if $limit_node;
+$log->info("Limiting to OS $limit_os") if $limit_os;
 
 my $ua = LWP::UserAgent->new;
 # Do we need to accept a self-signed cert?
@@ -66,7 +68,11 @@ $ua->ssl_opts(SSL_ca_file => $cfg->{'ca_cert'}) if $cfg->{'ca_cert'};
 our $json = JSON->new->allow_nonref;
 
 # Work time
+my $now = Date::Manip::Date->new("now");
 my $os_map = &loadOSList;
+$log->debug("Loading alerts log file $cfg->{'alert_log'}");
+my $alerts = LoadFile($cfg->{'alert_log'});
+$log->trace(Data::Dumper->Dump([$alerts]));
 
 my ($groups, $num_groups) = getAndDecode("hostgroups");
 my $i = 1;
@@ -200,10 +206,9 @@ foreach my $group (@$groups)
 					delete($violations->{$package}->{'name'});
 					$violations->{$package} = undef if(scalar(keys(%{$violations->{$package}})) < 1);
 				}
-				my $yaml = Dump([$violations]);
+				my $yaml = Dump($violations);
 				# Slight tweaks to output styles
 				$yaml =~ s/: ~/:/g;
-				$yaml =~ s/^- /  /gm;
 				my $output_file = "/tmp/$host->{'name'}.yml";
 				open(FH, '>', $output_file) || die "Couldn't open file $output_file";
 				print FH $yaml;
@@ -212,18 +217,36 @@ foreach my $group (@$groups)
 			}
 			else
 			{
-				my $body = "New unapproved software has been detected:
-											
-";
+				my $actionable_violations = {};
+
 				foreach my $package (keys %$violations)
 				{
-					$body .= "Name: $violations->{$package}->{'name'}
-Version: $violations->{$package}->{'installed_version'}
-";
-					$body .= "Vendor: $violations->{$package}->{'vendor'}
-" if $violations->{$package}->{'vendor'};
-					$body .= "
-";
+					if($alerts->{$host->{'name'}}->{$package})
+					{	# We have alerted about this package before
+						my $parsed_date = Date::Manip::Date->new($alerts->{$host->{'name'}}->{$package});
+						$log->debug("Previously sent alert about $package on ".$parsed_date->printf("%O"));
+						my $alert_delta = $parsed_date->calc($now);
+						my $alert_delta_days = $alert_delta->printf("%dys");
+						$log->debug("Previously sent alert $alert_delta_days days ago");
+						if($alert_delta_days > $cfg->{'alert_repeat_days'})
+						{
+							$log->debug("Sending new alert");
+							$actionable_violations->{$package} = $violations->{$package};
+						}
+					}
+				}
+				
+				# Nothing to do 
+				next unless scalar(keys %$actionable_violations) > 0;
+
+				my $body = "New unapproved software has been detected:\n\n";
+				foreach my $package (keys %$actionable_violations)
+				{
+					$body .= "Name: $violations->{$package}->{'name'}\nVersion: $violations->{$package}->{'installed_version'}\n";
+					$body .= "Vendor: $violations->{$package}->{'vendor'}\n" if $violations->{$package}->{'vendor'};
+					$body .= "\n";
+					# Write the alert to the log so that we know not to send it again
+					$alerts->{$host->{'name'}}->{$package} = $now->printf("%O");
 				}
 				$log->trace($body);
 				my $ticket = { 'ticket' =>
@@ -239,6 +262,10 @@ Version: $violations->{$package}->{'installed_version'}
 				};
 
 				#~ callURL("post", "https://virtualclarity.zendesk.com/api/v2/tickets.json", undef, $content);
+
+				# Update alerts file with successfully sent alerts
+				$log->debug("Updating alerts log file $cfg->{'alert_log'}");
+				DumpFile($cfg->{'alert_log'}, $alerts);
 			}
 		}
 		$j++;			# increment node counter

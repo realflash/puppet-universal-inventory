@@ -18,7 +18,12 @@ os_mapping:
 # If you have a self-signed cert on the API endpoint specify the CA cert
 # that signed it here. Should be in same dir as the script
 ca_cert: mom.puppet.virtuclarity.com.ca.pem
+# URL to the Foreman API to query for hosts
 foreman_api: https://mom.puppet.virtualclarity.com/api/
+# URL to the Zendesk API to send alerts to
 zendesk_api: https://virtualclarity.zendesk.com/api/v2/
+# Where we should record the alerts we have sent
 alert_log: notify_alert_log.yml
+# If this package is still a violation this many days after the last alert, send another alert
+alert_repeat_days: 14
 
