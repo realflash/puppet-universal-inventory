@@ -1,8 +1,6 @@
 
 # Universal Inventory
 
-NOT YET STABLE - check back for 0.1.0
-
 #### Table of Contents
 
 1. [Description](#description)

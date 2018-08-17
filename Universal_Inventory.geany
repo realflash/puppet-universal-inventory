@@ -27,12 +27,9 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=4
-FILE_NAME_0=26;Ruby;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDownloads%2Frmueller-pkg_inventory-0.2.0%2Flib%2Ffacter%2Fpkg_inventory.rb;0;4
-FILE_NAME_1=1458;Ruby;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDownloads%2Fjhaals-app_inventory-0.0.1%2Flib%2Ffacter%2Fapp_inventory.rb;0;4
-FILE_NAME_2=1;JSON;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDropbox%2FWork%2FVC%2Fdev%2Fpuppet-universal-inventory%2Fmetadata.json;0;4
-FILE_NAME_3=2;Ruby;0;EUTF-8;0;1;1;%2Fhome%2Figibbs%2FDropbox%2FWork%2FVC%2Fdev%2Fpuppet-universal-inventory%2Flib%2Ffacter%2Fui_fact.rb;0;2
-FILE_NAME_4=1088;Markdown;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDropbox%2FWork%2FVC%2Fdev%2Fpuppet-universal-inventory%2FREADME.md;0;4
+current_page=1
+FILE_NAME_0=64;JSON;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDropbox%2FWork%2FVC%2Fdev%2Fpuppet-universal-inventory%2Fmetadata.json;0;4
+FILE_NAME_1=24;Markdown;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDropbox%2FWork%2FVC%2Fdev%2Fpuppet-universal-inventory%2FREADME.md;0;4
 
 [VTE]
 last_dir=/home/igibbs

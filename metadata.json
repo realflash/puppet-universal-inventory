@@ -1,6 +1,6 @@
 {
   "name": "realflash-universal_inventory",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "author": "Ian Gibbs",
   "summary": "Collects installed application data across all modern OSs and provides it as a fact, in a blob of JSON for onward processing",
   "license": "GPL-3.0-or-later",
