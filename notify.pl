@@ -190,6 +190,7 @@ foreach my $group (@$groups)
 		if(scalar(keys %$violations) > 0)
 		{
 			# We now have a list of violations for this host.
+			push(@$delayed_messages, "Violations on $host->{'name'}: ".scalar(keys %$violations));
 			if($package_list)
 			{	# Instead of alerting, print a list of the violations in the package list format so that it 
 				# Get rid of version numbers so that the rules are simpler and match better

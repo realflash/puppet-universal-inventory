@@ -19,5 +19,6 @@ os_mapping:
 # that signed it here. Should be in same dir as the script
 ca_cert: mom.puppet.virtuclarity.com.ca.pem
 foreman_api: https://mom.puppet.virtualclarity.com/api/
-
+zendesk_api: https://virtualclarity.zendesk.com/api/v2/
+alert_log: notify_alert_log.yml
 
