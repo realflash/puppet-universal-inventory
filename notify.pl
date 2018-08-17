@@ -15,8 +15,10 @@ use Date::Manip 6.53;
 use File::Slurp;
 
 my $foreman_api = "https://mom.puppet.virtualclarity.com/api/";
-my $password = $ENV{'FOREMAN_API_PASSWORD'};
-my $username = $ENV{'FOREMAN_API_USERNAME'};
+my $f_password = $ENV{'FOREMAN_API_PASSWORD'};
+my $f_username = $ENV{'FOREMAN_API_USERNAME'};
+my $z_password = $ENV{'ZENDESK_API_PASSWORD'};
+my $z_username = $ENV{'ZENDESK_API_USERNAME'};
 
 # Init logging
 my $home = dirname(Cwd::abs_path($0));
@@ -24,8 +26,10 @@ Log::Log4perl->init("$home/notify.log4j");
 my $log = Log::Log4perl->get_logger('puppet.notifier');
 
 # Check creds
-$log->logdie("No API username specified. Set environment variable \$FOREMAN_API_USERNAME") unless $username;
-$log->logdie("No API username specified. Set environment variable \$FOREMAN_API_PASSWORD") unless $password;
+$log->logdie("No Foreman API username specified. Set environment variable \$FOREMAN_API_USERNAME") unless $f_username;
+$log->logdie("No Foreman API username specified. Set environment variable \$FOREMAN_API_PASSWORD") unless $f_password;
+$log->logdie("No Zendesk API username specified. Set environment variable \$ZENDESK_API_USERNAME") unless $f_username;
+$log->logdie("No Zendesk API username specified. Set environment variable \$ZENDESK_API_PASSWORD") unless $f_password;
 
 # Init config
 $log->info("Loading configuration");
@@ -60,12 +64,9 @@ unless(GetOptions('n|node=s' => \$limit_node, 'p|package-list' => \$package_list
 $log->info("Limiting to node $limit_node") if $limit_node;
 $log->info("Limiting to OS $limit_os") if $limit_os;
 
-my $ua = LWP::UserAgent->new;
-# Do we need to accept a self-signed cert?
-$ua->ssl_opts(SSL_ca_file => $cfg->{'ca_cert'}) if $cfg->{'ca_cert'};
-
 # We'll need one of these
 our $json = JSON->new->allow_nonref;
+our $ua;
 
 # Work time
 my $now = Date::Manip::Date->new("now");
@@ -234,12 +235,19 @@ foreach my $group (@$groups)
 							$actionable_violations->{$package} = $violations->{$package};
 						}
 					}
+					else
+					{
+						$log->debug("Sending new alert");
+						$actionable_violations->{$package} = $violations->{$package};
+					}
 				}
 				
 				# Nothing to do 
+				$log->debug("Actionable violations: ".scalar(keys %$actionable_violations));
 				next unless scalar(keys %$actionable_violations) > 0;
-
-				my $body = "New unapproved software has been detected:\n\n";
+				$log->trace("1");
+		
+				my $body = "New unapproved software has been detected on $host->{'name'}:\n\n";
 				foreach my $package (keys %$actionable_violations)
 				{
 					$body .= "Name: $violations->{$package}->{'name'}\nVersion: $violations->{$package}->{'installed_version'}\n";
@@ -260,8 +268,8 @@ foreach my $group (@$groups)
 										}
 						}
 				};
-
-				callURL("post", "https://virtualclarity.zendesk.com/api/v2/tickets.json", undef, $ticket);
+				
+				zendeskAPI("tickets.json", $json->encode($ticket), "post");
 
 				# Update alerts file with successfully sent alerts
 				$log->debug("Updating alerts log file $cfg->{'alert_log'}");
@@ -342,8 +350,28 @@ sub foremanAPI
 {
 	my $endpoint = shift;
 
-	my $options = { 'username' => $username, 'password' => $password };
+	my $options = { 'username' => $f_username, 'password' => $f_password };
+	$ua = LWP::UserAgent->new;
+	# Do we need to accept a self-signed cert?
+	$ua->ssl_opts(SSL_ca_file => $cfg->{'ca_cert'}) if $cfg->{'ca_cert'};
+
 	my $response = callURL("get", $cfg->{'foreman_api'}."$endpoint?per_page=9999", $options)->decoded_content();
+	my $items = $json->decode($response);
+	my $num_items = $items->{'total'};
+
+	return ($items->{'results'}, $num_items);
+}
+
+sub zendeskAPI
+{
+	my $endpoint = shift;
+	my $content = shift;
+	my $method = shift;
+
+	$ua = LWP::UserAgent->new;
+	my $options = { 'username' => $z_username, 'password' => $z_password };
+
+	my $response = callURL($method, $cfg->{'zendesk_api'}."$endpoint?per_page=9999", $options, $content)->decoded_content();
 	my $items = $json->decode($response);
 	my $num_items = $items->{'total'};
 
@@ -373,7 +401,7 @@ sub callURL
 	}
 	elsif($method =~ /^post$/i)
 	{
-		$request = HTTP::Request->new('POST', $url, undef, $content);
+		$request = HTTP::Request->new('POST', $url, HTTP::Headers->new(Content_type => 'application/json'), $content);
 	}
 	else
 	{
@@ -383,6 +411,11 @@ sub callURL
 	{
 		$request->authorization_basic($options->{'username'}, $options->{'password'}) if $options->{'username'};
 		$response = $ua->request($request);
+		if($response->code =~ /^4/ || $response->code =~ /^5/)
+		{
+			throw Error::Simple($response->status_line."\n".$response->decoded_content);
+		}
+		#~ $log->trace(Data::Dumper->Dump([$response]));
 	}
 	catch Error with
 	{
@@ -395,6 +428,7 @@ sub callURL
 			$log->logdie(shift);
 		}
 	};
+	
 
 	$log->trace("Response: ".$response->status_line);
 	output_response($response, $options);
