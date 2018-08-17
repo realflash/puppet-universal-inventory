@@ -18,4 +18,6 @@ os_mapping:
 # If you have a self-signed cert on the API endpoint specify the CA cert
 # that signed it here. Should be in same dir as the script
 ca_cert: mom.puppet.virtuclarity.com.ca.pem
+foreman_api: https://mom.puppet.virtualclarity.com/api/
+
 

@@ -12,7 +12,7 @@ use File::Basename;
 use Getopt::Long;
 use YAML;
 
-my $api = "https://mom.puppet.virtualclarity.com/api/";
+my $foreman_api = "https://mom.puppet.virtualclarity.com/api/";
 my $password = $ENV{'FOREMAN_API_PASSWORD'};
 my $username = $ENV{'FOREMAN_API_USERNAME'};
 
@@ -68,9 +68,6 @@ our $json = JSON->new->allow_nonref;
 # Work time
 my $os_map = &loadOSList;
 
-#~ my $response = callURL("get", "$api$hostgroup_query")->decoded_content();
-#~ my $groups = $json->decode($response);
-#~ my $num_groups = $groups->{'total'};
 my ($groups, $num_groups) = getAndDecode("hostgroups");
 my $i = 1;
 my $delayed_messages = [];
@@ -317,7 +314,7 @@ sub getAndDecode
 {
 	my $endpoint = shift;
 	
-	my $response = callURL("get", "$api${endpoint}?per_page=9999")->decoded_content();
+	my $response = callURL("get", $cfg->{'foreman_api'}."$endpoint?per_page=9999")->decoded_content();
 	my $items = $json->decode($response);
 	my $num_items = $items->{'total'};
 	return ($items->{'results'}, $num_items);
