@@ -211,9 +211,10 @@ foreach my $group (@$groups)
 				# Slight tweaks to output styles
 				$yaml =~ s/: ~/:/g;
 				my $output_file = "/tmp/$host->{'name'}.yml";
-				open(FH, '>', $output_file) || die "Couldn't open file $output_file";
-				print FH $yaml;
-				close(FH);
+				#~ open(FH, '>', $output_file) || die "Couldn't open file $output_file";
+				#~ print FH $yaml;
+				#~ close(FH);
+				write_file($output_file, $yaml);
 				push(@$delayed_messages, "Violations written to $output_file");
 			}
 			else
