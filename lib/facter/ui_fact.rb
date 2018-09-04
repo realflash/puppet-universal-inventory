@@ -49,21 +49,21 @@ include REXML
       packages = []
       executor.exec(command).each_line do |pkg|
         pkg_parts = pkg.chomp.split("\t")
-		puts "======================= HELLO =========================="
         packages << { "name" => pkg_parts[0], "installed_version" => pkg_parts[1] }
       end
     when 'CentOS', 'RedHat', 'Fedora', 'Amazon', 'OracleLinux', 'Scientific', 'SLES'
       command = 'rpm -qa --qf %{NAME}"\t"%{VERSION}-%{RELEASE}"\n"'
       packages = []
-      Facter::Util::Resolution.exec(command).each_line do |pkg|
+      executor.exec(command).each_line do |pkg|
         pkg_parts = pkg.chomp.split("\t")
         packages << { "name" => pkg_parts[0], "installed_version" => pkg_parts[1] }
       end
 	when 'windows'
 	  command = 'wmic product WHERE (InstallState=5) get Name,Version,Vendor /format:csv'
-      Facter::Util::Resolution.exec(command).each_line do |pkg|
+      executor.exec(command).each_line do |pkg|
 	    pkg_string = pkg.chomp.chomp						# God knows why, but each line of output from the command ends in \r\r\n
 		next if pkg_string == "Node,Name,Vendor,Version"	# Ignore the header row
+		next if pkg_string.length < 1
         pkg_parts = pkg_string.split(",")
 		# 0: computer name
 		# 1: MSI name
@@ -71,14 +71,14 @@ include REXML
 		# Last: MSI version
         packages << { "name" => pkg_parts[1], "installed_version" => pkg_parts[pkg_parts.length-1], "vendor" => pkg_parts[2..pkg_parts.length-2].join(',') }
       end
-  when 'Darwin'
-    command = 'system_profiler SPApplicationsDataType -xml'
-    xml = Facter::Util::Resolution.exec(command)
-    xmldoc = Document.new(xml)
-    result = parse(xmldoc.root[1])
+	when 'Darwin'
+		command = 'system_profiler SPApplicationsDataType -xml'
+		xml = executor.exec(command)
+		xmldoc = Document.new(xml)
+		result = parse(xmldoc.root[1])
 
-    packages = []
-    result[0]['_items'].each do |application|
+		packages = []
+	result[0]['_items'].each do |application|
       # Only list applications in /Applications, Skip /Application/Utilities
       if application['path'].match(/^\/Applications/) and application['path'].index('Utilities') == nil
         if !application['version'].nil?
@@ -104,7 +104,7 @@ include REXML
         #~ packages << pkg.chomp.scan(/^(\S+).*\s(\d.*)/)[0]
       #~ end
     else
-      packages = "Unsupported OS '" + Facter.value(:operatingsystem) + "'. Please report the output of `facter operatingsystem` at https://github.com/realflash/puppet-universal-inventory/issues"
+      packages = "Unsupported OS '" + os + "'. Please report the output of `facter operatingsystem` at https://github.com/realflash/puppet-universal-inventory/issues"
     end
     return packages
   end
