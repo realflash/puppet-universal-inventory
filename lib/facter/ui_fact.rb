@@ -48,14 +48,18 @@ include REXML
       command = 'dpkg-query -W'
       packages = []
       executor.exec(command).each_line do |pkg|
-        pkg_parts = pkg.chomp.split("\t")
+        pkg_string = pkg.chomp						# get rid of newlines
+		pkg_string = pkg_string.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')	# get rid of invalid UTF-8
+		pkg_parts = pkg_string.split("\t")
         packages << { "name" => pkg_parts[0], "installed_version" => pkg_parts[1] }
       end
     when 'CentOS', 'RedHat', 'Fedora', 'Amazon', 'OracleLinux', 'Scientific', 'SLES'
       command = 'rpm -qa --qf %{NAME}"\t"%{VERSION}-%{RELEASE}"\n"'
       packages = []
       executor.exec(command).each_line do |pkg|
-        pkg_parts = pkg.chomp.split("\t")
+        pkg_string = pkg.chomp						# get rid of newlines
+		pkg_string = pkg_string.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')	# get rid of invalid UTF-8
+		pkg_parts = pkg_string.split("\t")
         packages << { "name" => pkg_parts[0], "installed_version" => pkg_parts[1] }
       end
 	when 'windows'
@@ -64,6 +68,7 @@ include REXML
 	    pkg_string = pkg.chomp.chomp						# God knows why, but each line of output from the command ends in \r\r\n
 		next if pkg_string == "Node,Name,Vendor,Version"	# Ignore the header row
 		next if pkg_string.length < 1
+		pkg_string = pkg_string.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')	# get rid of invalid UTF-8
         pkg_parts = pkg_string.split(",")
 		# 0: computer name
 		# 1: MSI name
