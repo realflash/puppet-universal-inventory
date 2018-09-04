@@ -12,6 +12,11 @@ module UIDiscover
 require 'rexml/document'
 require 'json'
 include REXML
+#~ attr_accessor :executor
+
+  #~ def self.executor
+	#~ @executor ||= UIExecute.new
+  #~ end
 
   def self.parse(element)
     case element.name
@@ -35,13 +40,13 @@ include REXML
     end
   end
 
-  def self.package_list
+  def self.package_list(executor = UIExecute.new)
     packages = []
     case Facter.value(:operatingsystem)
     when 'Debian', 'Ubuntu', 'LinuxMint'
       command = 'dpkg-query -W'
       packages = []
-      Facter::Util::Resolution.exec(command).each_line do |pkg|
+      executor.exec(command).each_line do |pkg|
         pkg_parts = pkg.chomp.split("\t")
         packages << { "name" => pkg_parts[0], "installed_version" => pkg_parts[1] }
       end
@@ -108,3 +113,10 @@ Facter.add(:"inventory") do
     JSON.generate(UIDiscover.package_list)
   end
 end
+
+class UIExecute
+  def exec(command)
+	return Facter::Util::Resolution.exec(command)
+  end
+end
+  

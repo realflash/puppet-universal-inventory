@@ -27,7 +27,10 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=-1
+current_page=2
+FILE_NAME_0=618;YAML;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDropbox%2FWork%2FVC%2Fdev%2Fpuppet-universal-inventory%2Fnotify_config.yml.example;0;4
+FILE_NAME_1=14947;None;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDownloads%2Fdavesoftware.csv;0;4
+FILE_NAME_2=2047;Ruby;0;EUTF-8;1;1;1;%2Fhome%2Figibbs%2FDropbox%2FWork%2FVC%2Fdev%2Fpuppet-universal-inventory%2Flib%2Ffacter%2Fui_fact.rb;0;4
 
 [VTE]
 last_dir=/home/igibbs
