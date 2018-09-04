@@ -11,6 +11,7 @@
 module UIDiscover
 require 'rexml/document'
 require 'json'
+require 'puppet'
 include REXML
 #~ attr_accessor :executor
 
@@ -40,14 +41,15 @@ include REXML
     end
   end
 
-  def self.package_list(executor = UIExecute.new)
+  def self.package_list(executor = UIExecute.new, os = Facter.value(:operatingsystem))
     packages = []
-    case Facter.value(:operatingsystem)
+    case os
     when 'Debian', 'Ubuntu', 'LinuxMint'
       command = 'dpkg-query -W'
       packages = []
       executor.exec(command).each_line do |pkg|
         pkg_parts = pkg.chomp.split("\t")
+		puts "======================= HELLO =========================="
         packages << { "name" => pkg_parts[0], "installed_version" => pkg_parts[1] }
       end
     when 'CentOS', 'RedHat', 'Fedora', 'Amazon', 'OracleLinux', 'Scientific', 'SLES'

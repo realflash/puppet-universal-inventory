@@ -42,4 +42,7 @@ def ensure_module_defined(module_name)
   end
 end
 
+Puppet::Util::Log.level = :debug
+Puppet::Util::Log.newdestination(:console)
+
 # 'spec_overrides' from sync.yml will appear below this line
