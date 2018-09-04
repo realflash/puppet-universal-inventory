@@ -68,7 +68,7 @@ setup	2.8.71-9.el7'
 			end
 		end
 		context 'on windows' do
-			#~ let(:facts) { {'operatingsystem' => 'windows'} }
+			#~ let(:facts) { {'operatingsystem' => 'windows'} }	# doesn't work
 			e = ExecutorStub.new
 			e.response = '
 Node,Name,Vendor,Version
@@ -81,8 +81,17 @@ IGIBBS-W10-VM-W,Google Update Helper,Google, Inc.,1.3.33.17'
 					{"installed_version"=>"16.0.10730.20088", "name"=>"Office 16 Click-to-Run Localization Component", "vendor"=>"Microsoft Corporation"},
 					{"installed_version"=>"1.3.33.17", "name"=>"Google Update Helper", "vendor"=>"Google, Inc."}
 				]
-			it 'handles well-formed UTF-8 package data' do
+			it 'retrieves packages when the data is well-formed' do
 				expect(UIDiscover.package_list(e, "windows")).to eql(msi_pkg_hash)
+			end
+			e2 = ExecutorStub.new
+			e2.response = "
+Node,Name,Vendor,Version
+IGIBBS-W10-VM-W,Office 16 Click-to-Run Extensibility Component\255,Microsoft Corporation,16.0.10730.20088
+IGIBBS-W10-VM-W,Office 16 Click-to-Run Localization Component,Microsoft Corporation,16.0.10730.20088
+IGIBBS-W10-VM-W,Google Update Helper,Google, Inc.,1.3.33.17"
+			it 'retrieves packages when the data contains an invalid UTF-8 byte sequence' do
+				expect(UIDiscover.package_list(e2, "windows")).to eql(msi_pkg_hash)
 			end
 		end
 		context 'on OS X' do
